@@ -281,6 +281,55 @@ function renderHomeWeather() {
   updateIcons();
 }
 function displayRegionName(item) { return item.nickname?.trim() || item.name; }
+function rainComment(maxProbability, totalPrecip) {
+  const probabilityBand = maxProbability < 20 ? 0 : maxProbability < 40 ? 1 : maxProbability < 60 ? 2 : maxProbability < 80 ? 3 : 4;
+  const amountBand = totalPrecip <= 0.05 ? 0 : totalPrecip <= 0.5 ? 1 : totalPrecip <= 2 ? 2 : totalPrecip <= 5 ? 3 : totalPrecip <= 15 ? 4 : 5;
+  const comments = [
+    [
+      "비가 올 가능성이 매우 낮고, 예상되는 비의 양도 거의 없어요.",
+      "비가 올 가능성은 낮으며, 예상되는 비의 양도 거의 없어요.",
+      "비가 올 가능성은 있지만, 예상되는 비의 양은 거의 없어요.",
+      "비가 올 가능성은 높지만, 내리더라도 아주 짧게 스칠 수 있어요.",
+      "비가 올 가능성은 매우 높지만, 예상 강수량은 거의 없어요. 짧은 빗방울에 대비하세요.",
+    ],
+    [
+      "비 가능성은 매우 낮지만, 약한 빗방울이 잠깐 떨어질 수 있어요.",
+      "비 가능성은 낮지만, 내리더라도 매우 약하고 짧을 것으로 보여요.",
+      "한때 약한 비가 내릴 수 있어요. 작은 우산이면 충분해요.",
+      "비가 올 가능성이 높지만 양은 매우 적어요. 작은 우산을 챙기세요.",
+      "비가 올 가능성이 매우 높지만 양은 매우 적어요. 휴대용 우산이면 충분해요.",
+    ],
+    [
+      "비 가능성은 매우 낮지만, 내릴 경우 약한 비가 예상돼요.",
+      "비 가능성은 낮지만 약한 비 예보가 있어요. 예보 변화를 확인하세요.",
+      "약한 비가 내릴 수 있어요. 휴대용 우산을 챙기면 안심이에요.",
+      "약한 비가 올 가능성이 높아요. 우산을 챙기는 편이 좋아요.",
+      "약한 비가 내릴 가능성이 매우 높아요. 우산을 챙기세요.",
+    ],
+    [
+      "비 가능성은 매우 낮지만, 내릴 경우 다소 비가 이어질 수 있어요.",
+      "비 가능성은 낮게 잡혔지만 예상 강수량이 있어요. 최신 예보를 확인하세요.",
+      "다소 비가 내릴 수 있어요. 외출할 때 우산을 준비하세요.",
+      "비가 올 가능성이 높고 양도 적지 않아요. 우산을 꼭 챙기세요.",
+      "비가 올 가능성이 매우 높고 제법 내릴 수 있어요. 우산을 꼭 챙기세요.",
+    ],
+    [
+      "비 가능성은 매우 낮지만, 비가 내리면 강수량이 많을 수 있어요. 예보를 다시 확인하세요.",
+      "비 가능성은 낮지만 강한 비로 바뀔 여지가 있어요. 최신 예보를 확인하세요.",
+      "제법 많은 비가 내릴 수 있어요. 튼튼한 우산을 준비하세요.",
+      "많은 비가 올 가능성이 높아요. 큰 우산과 빗길에 대비하세요.",
+      "많은 비가 내릴 가능성이 매우 높아요. 외출 시 빗길에 주의하세요.",
+    ],
+    [
+      "비 가능성은 매우 낮게 잡혔지만, 내릴 경우 많은 비가 될 수 있어요. 예보를 꼭 다시 확인하세요.",
+      "비 가능성은 낮지만 예상 강수량이 매우 많아요. 예보 변동과 기상특보를 확인하세요.",
+      "강한 비가 내릴 수 있어요. 외출 일정과 최신 예보를 확인하세요.",
+      "강한 비가 올 가능성이 높아요. 큰 우산을 준비하고 빗길을 조심하세요.",
+      "강한 비가 내릴 가능성이 매우 높아요. 가능하면 외출을 줄이고 기상특보를 확인하세요.",
+    ],
+  ];
+  return comments[amountBand][probabilityBand];
+}
 function weatherRow(item) { const key = regionKey(item); const hasNickname = Boolean(item.nickname?.trim()); return `<div class="weather-row" data-key="${escapeHtml(key)}" role="button" tabindex="0" aria-label="${escapeHtml(displayRegionName(item))} 상세 날씨 보기"><span class="weather-place"><span class="weather-icon">${item.weather.emoji}</span><span class="weather-copy"><span class="weather-title-line"><span class="weather-name" title="${escapeHtml(displayRegionName(item))}">${escapeHtml(displayRegionName(item))}</span>${item.temporary ? "" : `<button class="nickname-edit-button" data-key="${escapeHtml(key)}" type="button" aria-label="${escapeHtml(displayRegionName(item))} 별명 수정" title="별명 수정"><i data-lucide="pencil"></i></button>`}</span>${hasNickname ? `<span class="weather-address" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>` : ""}<span class="weather-meta">${item.temporary ? `<span class="temporary-label">${temporaryDateLabel()}</span> · ` : ""}${formatTemperature(item)}</span></span></span><span class="weather-condition"><strong>${item.weather.label}</strong><span class="weather-meta">${item.rainPeriod}</span></span><span class="umbrella-badge ${item.umbrellaNeeded ? "umbrella-need" : "umbrella-none"}">${item.umbrellaNeeded ? "☂ 우산 필요" : "우산 불필요"}</span><i data-lucide="chevron-right"></i></div>`; }
 function startInlineNicknameEdit(key) {
   const item = state.weather.find((region) => regionKey(region) === key && !region.temporary);
@@ -311,7 +360,8 @@ function formatTemperature(item) { return Number.isFinite(item.minTemp) ? `${Mat
 function openDetail(key) {
   const item = state.weather.find((region) => regionKey(region) === key); if (!item) return; state.selectedDetail = item;
   $("#detail-type").textContent = item.temporary ? `${temporaryDateLabel()} 가는 장소 · 상세 날씨` : item.nickname?.trim() ? item.name : "자주 가는 장소 · 상세 날씨"; $("#detail-name").textContent = displayRegionName(item);
-  $("#detail-summary").innerHTML = `<div class="detail-metric"><span>우산 판단</span><strong>${item.umbrellaNeeded ? "☂ 우산 필요" : "우산 불필요"}</strong></div><div class="detail-metric"><span>최고 강수확률</span><strong>${item.maxProbability}%</strong></div><div class="detail-metric"><span>${dateSubject()} 강수량</span><strong>${item.totalPrecip.toFixed(1)} mm</strong></div>`;
+  $("#detail-summary").innerHTML = `<div class="detail-metric"><span>우산 판단</span><strong>${item.umbrellaNeeded ? "☂ 우산 필요" : "우산 불필요"}</strong></div><div class="detail-metric"><span>최고 강수확률</span><strong>${item.maxProbability}%</strong></div><div class="detail-metric"><span>예상 강수량</span><strong>${item.totalPrecip.toFixed(1)} mm</strong></div>`;
+  $("#rain-comment").textContent = rainComment(item.maxProbability, item.totalPrecip);
   const probabilities = item.raw.hourly?.precipitation_probability || []; const precipitation = item.raw.hourly?.precipitation || [];
   $("#hourly-list").innerHTML = [0,3,6,9,12,15,18,21].map((hour) => `<div class="hour-cell ${(precipitation[hour] || 0) > .1 ? "rain-hour" : ""}"><strong>${hour}시</strong><span>${probabilities[hour] ?? 0}%</span><span>${(precipitation[hour] || 0).toFixed(1)}mm</span></div>`).join("");
   $("#detail-dialog").showModal(); renderChart(item); trackEvent("region_view", { region_name: item.name, temporary: item.temporary ? 1 : 0, region_count: state.weather.length, target_date: state.activeDate }); trackEvent("detail_chart_open", { region_name: item.name, region_count: state.weather.length, target_date: state.activeDate, chart_opened: 1 });
