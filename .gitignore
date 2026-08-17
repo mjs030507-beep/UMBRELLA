@@ -1,0 +1,21 @@
+# Source materials and large local assets
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.mov
+*.pdf
+*.doc
+*.docx
+*.hwp
+*.ppt
+*.pptx
+*.xls
+*.xlsx
+
+# Local/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+Microsoft/

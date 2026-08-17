@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>우산 챙길까?</title>
+  <meta name="description" content="자주 가는 곳의 오늘 비 소식을 열자마자 확인하세요.">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4" defer></script>
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="#" aria-label="우산 챙길까 홈"><span class="brand-mark">☂</span> 우산 챙길까?</a>
+    <button id="manage-open" class="icon-button hidden" type="button" aria-label="자주 가는 장소 관리" title="장소 관리"><i data-lucide="settings-2"></i></button>
+  </header>
+
+  <main>
+    <section id="onboarding" class="onboarding hidden" aria-labelledby="onboarding-title">
+      <div class="onboarding-copy">
+        <p class="eyebrow">처음 한 번만 등록하세요</p>
+        <h1 id="onboarding-title">자주 가는 곳의 비 소식,<br>이제 먼저 알려드릴게요.</h1>
+        <p>집, 학교, 직장처럼 자주 확인할 장소를 등록하면 다음 방문부터 바로 오늘의 우산 정보를 보여드려요.</p>
+      </div>
+      <div class="place-setup">
+        <div class="section-title-row">
+          <div><h2>자주 가는 장소</h2><p>최대 10곳까지 등록할 수 있어요.</p></div>
+          <span id="onboarding-count" class="count">0 / 10</span>
+        </div>
+        <div class="search-box">
+          <i data-lucide="search"></i>
+          <input id="onboarding-search" type="search" placeholder="동, 구, 역 주변 지역 검색" autocomplete="off">
+          <span id="onboarding-spinner" class="spinner hidden" aria-label="검색 중"></span>
+        </div>
+        <div id="onboarding-results" class="search-results" role="listbox"></div>
+        <div id="onboarding-places" class="selected-places"></div>
+        <p id="onboarding-error" class="inline-error hidden" role="alert"></p>
+        <button id="onboarding-complete" class="primary-button" type="button" disabled>등록하고 오늘 날씨 보기 <i data-lucide="arrow-right"></i></button>
+      </div>
+    </section>
+
+    <section id="home" class="home hidden" aria-live="polite">
+      <div class="home-heading">
+        <div><p id="today-label" class="eyebrow"></p><h1>내 생활지역 날씨</h1></div>
+        <button id="refresh-weather" class="icon-button" type="button" aria-label="날씨 새로고침" title="새로고침"><i data-lucide="refresh-cw"></i></button>
+      </div>
+
+      <section id="hero-status" class="decision decision-loading">
+        <div class="decision-icon"><span class="spinner spinner-large"></span></div>
+        <div><p class="decision-label">오늘의 우산 판단</p><h2>날씨를 확인하고 있어요</h2><p>저장한 장소의 예보를 불러오는 중입니다.</p></div>
+      </section>
+
+      <div id="weather-error" class="error-panel hidden" role="alert">
+        <div><strong>날씨를 불러오지 못했어요.</strong><p id="weather-error-message">잠시 후 다시 시도해주세요.</p></div>
+        <button id="retry-weather" class="secondary-button" type="button">다시 시도</button>
+      </div>
+
+      <section class="places-section" aria-labelledby="places-title">
+        <div class="section-title-row">
+          <div><h2 id="places-title">자주 가는 장소</h2><p>장소를 누르면 시간대별 상세 예보를 볼 수 있어요.</p></div>
+          <span id="saved-count" class="count"></span>
+        </div>
+        <div id="saved-weather-list" class="weather-list"></div>
+      </section>
+
+      <section class="temporary-section" aria-labelledby="temporary-title">
+        <div class="section-title-row">
+          <div><h2 id="temporary-title">오늘만 가는 장소</h2><p>오늘의 판단에만 포함되고 내일 자동으로 사라져요.</p></div>
+          <button id="temporary-add-open" class="add-button" type="button"><i data-lucide="plus"></i> 추가</button>
+        </div>
+        <div id="temporary-weather-list" class="weather-list"></div>
+        <p id="temporary-empty" class="empty-state">오늘 추가한 장소가 없어요.</p>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="search-dialog" class="sheet-dialog">
+    <div class="dialog-head"><div><p class="eyebrow" id="search-dialog-eyebrow">장소 추가</p><h2 id="search-dialog-title">장소를 검색하세요</h2></div><button class="icon-button dialog-close" type="button" aria-label="닫기"><i data-lucide="x"></i></button></div>
+    <div class="search-box"><i data-lucide="search"></i><input id="dialog-search" type="search" placeholder="예: 성수동, 강남구" autocomplete="off"><span id="dialog-spinner" class="spinner hidden"></span></div>
+    <div id="dialog-results" class="search-results dialog-results" role="listbox"></div>
+  </dialog>
+
+  <dialog id="manage-dialog" class="sheet-dialog">
+    <div class="dialog-head"><div><p class="eyebrow">내 장소</p><h2>자주 가는 장소 관리</h2></div><button class="icon-button dialog-close" type="button" aria-label="닫기"><i data-lucide="x"></i></button></div>
+    <div class="section-title-row"><p>최대 10곳까지 저장할 수 있어요.</p><span id="manage-count" class="count"></span></div>
+    <div id="manage-list" class="manage-list"></div>
+    <button id="manage-add" class="secondary-button full-button" type="button"><i data-lucide="plus"></i> 장소 추가</button>
+  </dialog>
+
+  <dialog id="detail-dialog" class="detail-dialog">
+    <div class="dialog-head"><div><p id="detail-type" class="eyebrow">상세 날씨</p><h2 id="detail-name"></h2></div><button class="icon-button dialog-close" type="button" aria-label="닫기"><i data-lucide="x"></i></button></div>
+    <div id="detail-summary" class="detail-summary"></div>
+    <div class="chart-header"><h3>시간대별 강수량</h3><span>mm</span></div>
+    <div class="chart-wrap"><canvas id="precip-chart"></canvas></div>
+    <div id="hourly-list" class="hourly-list"></div>
+  </dialog>
+
+  <script src="js/weather.js"></script>
+  <script src="js/logger.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
