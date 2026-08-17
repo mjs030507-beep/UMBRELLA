@@ -33,7 +33,7 @@ function bindAdminEvents() {
 }
 
 function queryParams(extra = {}) {
-  const params = new URLSearchParams({ version: byId("version-filter").value, ...extra });
+  const params = new URLSearchParams(extra);
   if (byId("from-date").value) params.set("from", byId("from-date").value);
   if (byId("to-date").value) params.set("to", byId("to-date").value);
   return params;
@@ -57,7 +57,7 @@ async function openDashboard() {
 }
 async function loadDashboard() {
   const response = await adminFetch(queryParams()); const data = await response.json();
-  renderKpis(data.kpis); renderComparison(data.comparison); renderSessions(data.sessions);
+  renderKpis(data.kpis); renderSessions(data.sessions);
   byId("dashboard-updated").textContent = `${fmt.format(new Date())} 갱신`;
 }
 function renderKpis(kpis) {
@@ -70,12 +70,8 @@ function renderKpis(kpis) {
   const totals = [["전체 고유 세션", kpis.totals.uniqueSessions], ["날씨 조회 세션", kpis.totals.querySessions], ["총 날씨 조회", kpis.totals.weatherQueries], ["평균 선택 지역", kpis.totals.averageRegions], ["그래프 클릭", kpis.totals.chartClicks], ["날짜 변경", kpis.totals.dateChanges], ["평균 날짜 변경", kpis.totals.averageDateChanges], ["API 정상 조회율", `${kpis.totals.apiSuccessRate.toFixed(1)}%`], ["API 오류", kpis.totals.apiErrors]];
   byId("support-metrics").innerHTML = totals.map(([label, value]) => `<div class="support-metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
 }
-function renderComparison(comparison) {
-  const rows = [["다지역 활용률", "multiRegion"], ["상세 그래프 열람률", "chartOpen"], ["날짜 변경률", "dateChange"]];
-  byId("comparison-body").innerHTML = rows.map(([label, key]) => { const before = comparison.v1[key].rate; const after = comparison.v2[key].rate; const delta = Math.round((after - before) * 10) / 10; return `<tr><td>${label}</td><td>${before.toFixed(1)}%</td><td>${after.toFixed(1)}%</td><td class="${delta >= 0 ? "delta-positive" : "delta-negative"}">${delta >= 0 ? "+" : ""}${delta.toFixed(1)}%p</td></tr>`; }).join("");
-}
 function renderSessions(rows) {
-  byId("sessions-body").innerHTML = rows.length ? rows.map((row) => `<tr><td>${fmt.format(new Date(row.started_at))}</td><td>${row.app_version}</td><td><button class="session-link" data-session="${row.session_id}">${row.session_id.slice(0, 8)}</button></td><td>${row.max_region_count}</td><td>${row.weather_queries}</td><td>${row.chart_opened ? `예 (${row.chart_clicks})` : "아니오"}</td><td>${row.date_changes}</td><td>${row.api_errors}</td></tr>`).join("") : '<tr><td class="admin-empty" colspan="8">조건에 맞는 데이터가 없습니다.</td></tr>';
+  byId("sessions-body").innerHTML = rows.length ? rows.map((row) => `<tr><td>${fmt.format(new Date(row.started_at))}</td><td><button class="session-link" data-session="${row.session_id}">${row.session_id.slice(0, 8)}</button></td><td>${row.max_region_count}</td><td>${row.weather_queries}</td><td>${row.chart_opened ? `예 (${row.chart_clicks})` : "아니오"}</td><td>${row.date_changes}</td><td>${row.api_errors}</td></tr>`).join("") : '<tr><td class="admin-empty" colspan="7">조건에 맞는 데이터가 없습니다.</td></tr>';
   document.querySelectorAll(".session-link").forEach((button) => button.addEventListener("click", () => openTimeline(button.dataset.session)));
 }
 async function openTimeline(sessionId) {
