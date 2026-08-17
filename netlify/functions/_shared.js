@@ -1,6 +1,7 @@
-import { neon } from "@netlify/neon";
+import { getConnectionString } from "@netlify/database";
+import postgres from "postgres";
 
-export const sql = neon();
+export const sql = postgres(getConnectionString(), { prepare: false, max: 1, idle_timeout: 20 });
 export const json = (data, status = 200, headers = {}) => new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...headers } });
 export const cleanText = (value, max = 200) => String(value ?? "").slice(0, max);
 export const validDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
