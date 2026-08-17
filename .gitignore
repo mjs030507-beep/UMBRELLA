@@ -19,3 +19,8 @@
 Thumbs.db
 .vscode/
 Microsoft/
+.env
+.env.*
+!.env.example
+node_modules/
+.netlify/

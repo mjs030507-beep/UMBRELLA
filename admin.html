@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>우산 챙길까? | KPI 관리자</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+</head>
+<body class="admin-body">
+  <header class="admin-header"><a class="brand" href="index.html"><span class="brand-mark">☂</span> 우산 챙길까?</a><span>관리자 KPI</span></header>
+  <main class="admin-main">
+    <section id="admin-login" class="admin-login" aria-labelledby="login-title">
+      <p class="eyebrow">관리자 전용</p><h1 id="login-title">행동 데이터 대시보드</h1><p>Netlify에 설정한 관리자 Secret을 입력하세요.</p>
+      <form id="login-form"><input id="admin-secret" type="password" autocomplete="current-password" placeholder="ADMIN_SECRET" required><button class="primary-button" type="submit">대시보드 열기</button></form>
+      <p id="login-error" class="inline-error hidden" role="alert">인증에 실패했습니다.</p>
+    </section>
+
+    <section id="dashboard" class="hidden">
+      <div class="dashboard-title"><div><p class="eyebrow">실제 행동 기준</p><h1>KPI 대시보드</h1><p id="dashboard-updated"></p></div><button id="logout" class="secondary-button" type="button"><i data-lucide="log-out"></i> 로그아웃</button></div>
+      <div class="admin-filters">
+        <label>버전<select id="version-filter"><option value="all">전체</option><option value="v1">v1 수정 전</option><option value="v2">v2 수정 후</option></select></label>
+        <label>시작일<input id="from-date" type="date"></label><label>종료일<input id="to-date" type="date"></label>
+        <button id="apply-filter" class="secondary-button" type="button"><i data-lucide="filter"></i> 적용</button>
+      </div>
+
+      <section class="kpi-section" aria-labelledby="core-kpi-title"><h2 id="core-kpi-title">핵심 KPI</h2><div id="kpi-cards" class="kpi-cards"></div></section>
+      <section class="support-section" aria-labelledby="support-title"><h2 id="support-title">보조 지표</h2><div id="support-metrics" class="support-metrics"></div></section>
+      <section class="comparison-section" aria-labelledby="comparison-title"><div class="section-head"><div><h2 id="comparison-title">수정 전·후 비교</h2><p>같은 날짜 필터 안에서 v1과 v2를 비교합니다.</p></div></div><div class="admin-table-wrap"><table><thead><tr><th>KPI</th><th>수정 전(v1)</th><th>수정 후(v2)</th><th>변화</th></tr></thead><tbody id="comparison-body"></tbody></table></div></section>
+      <section class="logs-section" aria-labelledby="logs-title"><div class="section-head"><div><h2 id="logs-title">세션별 원본 로그</h2><p>세션을 선택하면 이벤트 발생 순서를 확인할 수 있습니다.</p></div><div class="csv-menu"><button id="csv-toggle" class="secondary-button" type="button"><i data-lucide="download"></i> CSV</button><div id="csv-options" class="csv-options hidden"><button data-table="sessions">sessions.csv</button><button data-table="weather_queries">weather_queries.csv</button><button data-table="events">events.csv</button><button data-table="kpi_summary">kpi_summary.csv</button></div></div></div><div class="admin-table-wrap"><table><thead><tr><th>시간</th><th>Version</th><th>Session</th><th>최대 지역</th><th>날씨 조회</th><th>그래프</th><th>날짜 변경</th><th>API 오류</th></tr></thead><tbody id="sessions-body"></tbody></table></div></section>
+    </section>
+  </main>
+  <dialog id="timeline-dialog" class="sheet-dialog timeline-dialog"><div class="dialog-head"><div><p class="eyebrow">이벤트 타임라인</p><h2 id="timeline-session"></h2></div><button class="icon-button" id="timeline-close" type="button" aria-label="닫기"><i data-lucide="x"></i></button></div><ol id="timeline-list" class="timeline-list"></ol></dialog>
+  <script src="js/admin.js"></script>
+</body>
+</html>

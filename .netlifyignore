@@ -1,0 +1,15 @@
+.git/
+.vscode/
+.netlify/
+node_modules/
+tests/
+docs/
+netlify/db/
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.pdf
+*.doc
+*.docx
+Microsoft/

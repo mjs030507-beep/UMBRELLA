@@ -45,7 +45,10 @@
     <section id="home" class="home hidden" aria-live="polite">
       <div class="home-heading">
         <div><p id="today-label" class="eyebrow"></p><h1>내 생활지역 날씨</h1></div>
-        <button id="refresh-weather" class="icon-button" type="button" aria-label="날씨 새로고침" title="새로고침"><i data-lucide="refresh-cw"></i></button>
+        <div class="date-actions">
+          <label class="date-picker"><i data-lucide="calendar-days"></i><span class="sr-only">조회 날짜</span><input id="forecast-date" type="date" aria-label="조회 날짜"></label>
+          <button id="refresh-weather" class="icon-button" type="button" aria-label="날씨 새로고침" title="새로고침"><i data-lucide="refresh-cw"></i></button>
+        </div>
       </div>
 
       <section id="hero-status" class="decision decision-loading">
@@ -68,11 +71,16 @@
 
       <section class="temporary-section" aria-labelledby="temporary-title">
         <div class="section-title-row">
-          <div><h2 id="temporary-title">오늘만 가는 장소</h2><p>오늘의 판단에만 포함되고 내일 자동으로 사라져요.</p></div>
+          <div><h2 id="temporary-title">오늘만 가는 장소</h2><p id="temporary-description">오늘의 우산 판단에만 포함돼요.</p></div>
           <button id="temporary-add-open" class="add-button" type="button"><i data-lucide="plus"></i> 추가</button>
         </div>
         <div id="temporary-weather-list" class="weather-list"></div>
         <p id="temporary-empty" class="empty-state">오늘 추가한 장소가 없어요.</p>
+      </section>
+
+      <section class="feedback-prompt" aria-labelledby="feedback-prompt-title">
+        <div><p class="eyebrow">더 나은 우산 판단을 위해</p><h2 id="feedback-prompt-title">아쉬운 점이 있나요?</h2><p>짧은 의견도 다음 개선에 큰 도움이 돼요.</p></div>
+        <button id="feedback-open" class="secondary-button" type="button"><i data-lucide="message-square-more"></i> 의견 남기기</button>
       </section>
     </section>
   </main>
@@ -96,6 +104,23 @@
     <div class="chart-header"><h3>시간대별 강수량</h3><span>mm</span></div>
     <div class="chart-wrap"><canvas id="precip-chart"></canvas></div>
     <div id="hourly-list" class="hourly-list"></div>
+  </dialog>
+
+  <dialog id="feedback-dialog" class="sheet-dialog feedback-dialog">
+    <div class="dialog-head"><div><p class="eyebrow">간단 피드백</p><h2>어떤 점이 아쉬웠나요?</h2></div><button class="icon-button dialog-close" type="button" aria-label="닫기"><i data-lucide="x"></i></button></div>
+    <form id="feedback-form">
+      <fieldset class="feedback-categories">
+        <legend>가장 가까운 항목을 골라주세요.</legend>
+        <label><input type="radio" name="feedback-category" value="accuracy"><span>날씨가 정확하지 않아요</span></label>
+        <label><input type="radio" name="feedback-category" value="usability"><span>사용하기 불편해요</span></label>
+        <label><input type="radio" name="feedback-category" value="missing"><span>필요한 기능이 없어요</span></label>
+        <label><input type="radio" name="feedback-category" value="other"><span>기타 의견</span></label>
+      </fieldset>
+      <label class="feedback-text-label" for="feedback-text">조금 더 알려주세요 <span>선택 · 개인정보는 입력하지 마세요</span></label>
+      <textarea id="feedback-text" maxlength="500" rows="5" placeholder="아쉬웠던 점이나 바라는 기능을 자유롭게 적어주세요."></textarea>
+      <div class="feedback-form-footer"><span id="feedback-count">0 / 500</span><button id="feedback-submit" class="primary-button" type="submit" disabled>피드백 보내기</button></div>
+    </form>
+    <div id="feedback-success" class="feedback-success hidden"><span><i data-lucide="check"></i></span><h3>의견을 남겨주셔서 감사해요.</h3><p>다음 개선에 꼼꼼히 반영할게요.</p><button id="feedback-done" class="secondary-button" type="button">닫기</button></div>
   </dialog>
 
   <script src="js/weather.js"></script>
