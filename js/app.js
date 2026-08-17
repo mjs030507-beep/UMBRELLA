@@ -363,10 +363,37 @@ function openDetail(key) {
   $("#detail-summary").innerHTML = `<div class="detail-metric"><span>우산 판단</span><strong>${item.umbrellaNeeded ? "☂ 우산 필요" : "우산 불필요"}</strong></div><div class="detail-metric"><span>최고 강수확률</span><strong>${item.maxProbability}%</strong></div><div class="detail-metric"><span>예상 강수량</span><strong>${item.totalPrecip.toFixed(1)} mm</strong></div>`;
   $("#rain-comment").textContent = rainComment(item.maxProbability, item.totalPrecip);
   const probabilities = item.raw.hourly?.precipitation_probability || []; const precipitation = item.raw.hourly?.precipitation || [];
-  $("#hourly-list").innerHTML = [0,3,6,9,12,15,18,21].map((hour) => `<div class="hour-cell ${(precipitation[hour] || 0) > .1 ? "rain-hour" : ""}"><strong>${hour}시</strong><span>${probabilities[hour] ?? 0}%</span><span>${(precipitation[hour] || 0).toFixed(1)}mm</span></div>`).join("");
+  $("#hourly-list").innerHTML = [0,3,6,9,12,15,18,21].map((hour) => { const probability = probabilities[hour] ?? 0; const amount = precipitation[hour] || 0; return `<div class="hour-cell ${probability >= RAIN_PROBABILITY || amount > .1 ? "rain-hour" : ""}"><strong>${hour}시</strong><span>${probability}%</span><span>${amount.toFixed(1)}mm</span></div>`; }).join("");
   $("#detail-dialog").showModal(); renderChart(item); trackEvent("region_view", { region_name: item.name, temporary: item.temporary ? 1 : 0, region_count: state.weather.length, target_date: state.activeDate }); trackEvent("detail_chart_open", { region_name: item.name, region_count: state.weather.length, target_date: state.activeDate, chart_opened: 1 });
 }
 function renderChart(item) {
-  if (!window.Chart) return; if (state.chart) state.chart.destroy(); const values = (item.raw.hourly?.precipitation || []).slice(0, 24);
-  state.chart = new Chart($("#precip-chart"), { type: "bar", data: { labels: values.map((_, hour) => `${hour}시`), datasets: [{ data: values, backgroundColor: values.map((v) => v > .1 ? "#2563a9" : "#dfe7ee"), borderRadius: 3, barPercentage: .72 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => ` ${context.raw.toFixed(1)} mm` } } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }, y: { beginAtZero: true, grid: { color: "#edf0f3" } } } } });
+  if (!window.Chart) return;
+  if (state.chart) state.chart.destroy();
+  const amounts = (item.raw.hourly?.precipitation || []).slice(0, 24).map((value) => Number(value) || 0);
+  const probabilities = (item.raw.hourly?.precipitation_probability || []).slice(0, 24).map((value) => Number(value) || 0);
+  const labels = Array.from({ length: Math.max(amounts.length, probabilities.length) }, (_, hour) => `${hour}시`);
+  state.chart = new Chart($("#precip-chart"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { type: "bar", label: "예상 강수량", data: amounts, yAxisID: "amount", backgroundColor: "#2563a9", borderRadius: 3, barPercentage: .68, order: 2 },
+        { type: "line", label: "강수확률", data: probabilities, yAxisID: "probability", borderColor: "#16875b", backgroundColor: "#16875b", borderWidth: 2, pointRadius: 2.5, pointHoverRadius: 5, tension: .28, order: 1 },
+        { type: "line", label: "우산 기준 50%", data: labels.map(() => RAIN_PROBABILITY), yAxisID: "probability", borderColor: "#98a2b3", borderWidth: 1, borderDash: [5, 5], pointRadius: 0, tension: 0, order: 3 },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8, padding: 16 } },
+        tooltip: { callbacks: { label: (context) => context.dataset.yAxisID === "amount" ? ` 예상 강수량 ${Number(context.raw).toFixed(1)} mm` : context.dataset.label === "강수확률" ? ` 강수확률 ${context.raw}%` : ` 우산 기준 ${context.raw}%` } },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+        amount: { type: "linear", position: "left", beginAtZero: true, suggestedMax: 1, title: { display: true, text: "mm" }, grid: { color: "#edf0f3" } },
+        probability: { type: "linear", position: "right", min: 0, max: 100, title: { display: true, text: "%" }, grid: { drawOnChartArea: false } },
+      },
+    },
+  });
 }
