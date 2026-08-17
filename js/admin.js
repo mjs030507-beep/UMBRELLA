@@ -4,10 +4,24 @@ const fmt = new Intl.DateTimeFormat("ko-KR", { dateStyle: "short", timeStyle: "s
 const escapeAdmin = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
 
 document.addEventListener("DOMContentLoaded", () => {
+  setDefaultDateRange();
   bindAdminEvents();
   if (sessionStorage.getItem(ADMIN_SECRET_KEY)) openDashboard();
   if (window.lucide) window.lucide.createIcons();
 });
+
+function toDateInputValue(date) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
+function setDefaultDateRange() {
+  const today = new Date();
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(today.getDate() - 29);
+  byId("from-date").value = toDateInputValue(thirtyDaysAgo);
+  byId("to-date").value = toDateInputValue(today);
+}
 
 function bindAdminEvents() {
   byId("login-form").addEventListener("submit", async (event) => { event.preventDefault(); sessionStorage.setItem(ADMIN_SECRET_KEY, byId("admin-secret").value); await openDashboard(); });
@@ -27,12 +41,19 @@ function queryParams(extra = {}) {
 async function adminFetch(params) {
   const response = await fetch(`/.netlify/functions/admin-data?${params}`, { headers: { "x-admin-secret": sessionStorage.getItem(ADMIN_SECRET_KEY) || "" } });
   if (response.status === 401) throw new Error("unauthorized");
-  if (!response.ok) throw new Error("dashboard");
+  if (!response.ok) throw new Error(`dashboard:${response.status}`);
   return response;
 }
 async function openDashboard() {
   try { await loadDashboard(); byId("admin-login").classList.add("hidden"); byId("dashboard").classList.remove("hidden"); byId("login-error").classList.add("hidden"); }
-  catch (error) { sessionStorage.removeItem(ADMIN_SECRET_KEY); byId("login-error").classList.remove("hidden"); }
+  catch (error) {
+    sessionStorage.removeItem(ADMIN_SECRET_KEY);
+    const message = error.message === "unauthorized"
+      ? "비밀번호가 일치하지 않습니다. Netlify의 ADMIN_SECRET 값과 16자 이상인지 확인하세요."
+      : "관리자 서버에 연결하지 못했습니다. Netlify 배포 및 Database 상태를 확인하세요.";
+    byId("login-error").textContent = message;
+    byId("login-error").classList.remove("hidden");
+  }
 }
 async function loadDashboard() {
   const response = await adminFetch(queryParams()); const data = await response.json();
@@ -42,10 +63,10 @@ async function loadDashboard() {
 function renderKpis(kpis) {
   const cards = [
     ["다지역 활용률", kpis.multiRegion, "2개 이상 지역을 조회한 세션"],
-    ["상세 그래프 열람률", kpis.chartOpen, "그래프 열람 세션"],
-    ["날짜 변경률", kpis.dateChange, "날짜 변경 세션"],
+    ["상세 그래프 열람률", kpis.chartOpen, "상세 그래프 열람 세션"],
+    ["날짜 변경률", kpis.dateChange, "조회 날짜 변경 세션"],
   ];
-  byId("kpi-cards").innerHTML = cards.map(([label, value, detail]) => `<article class="kpi-card"><p>${label}</p><strong>${value.rate.toFixed(1)}%</strong><span>${detail} ${value.numerator} / 조회 세션 ${value.denominator}</span></article>`).join("");
+  byId("kpi-cards").innerHTML = cards.map(([label, value, detail]) => `<article class="kpi-card"><p>${label}</p><strong>${value.rate.toFixed(1)}%</strong><span>${detail} <b>${value.numerator}</b> / 정상 날씨 조회 세션 <b>${value.denominator}</b></span><small>${value.denominator ? `${value.numerator} ÷ ${value.denominator} × 100` : "아직 계산할 조회 데이터가 없습니다."}</small></article>`).join("");
   const totals = [["전체 고유 세션", kpis.totals.uniqueSessions], ["날씨 조회 세션", kpis.totals.querySessions], ["총 날씨 조회", kpis.totals.weatherQueries], ["평균 선택 지역", kpis.totals.averageRegions], ["그래프 클릭", kpis.totals.chartClicks], ["날짜 변경", kpis.totals.dateChanges], ["평균 날짜 변경", kpis.totals.averageDateChanges], ["API 정상 조회율", `${kpis.totals.apiSuccessRate.toFixed(1)}%`], ["API 오류", kpis.totals.apiErrors]];
   byId("support-metrics").innerHTML = totals.map(([label, value]) => `<div class="support-metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
 }
